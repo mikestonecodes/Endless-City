@@ -82,47 +82,52 @@ class Tile {
      }
 
      loadCluster(cluster) {
-      
+        
         if(! cluster&& this.gtlfScene) {
             scene.remove(this.gtlfScene )
         }
         if(cluster == this.cluster)return;
-      
+        var that = this;
         this.cluster = cluster;
         if(cluster){
+            
         loader.load(`js/clusters/${cluster}.glb`, (gltf) => {
            if(this.gtlfScene )scene.remove(this.gtlfScene )
-           gltf.scene.traverse(function (child) {
-               console.log
+           this.gtlfScene = gltf.scene; 
+           this.gtlfScene.traverse(function (child) {
+
             if (child.isMesh) { 
                 child.receiveShadow = true
                 child.castShadow = true
             }
+          
+            child.userData.tile = that;
         })
-            this.gtlfScene = gltf.scene; 
+           
             this.gtlfScene.position.set((this.x-5) * 60, 0, (this.z-5) * 60)  
             scene.add(this.gtlfScene )
         })
     }
     }
-
+    getGlobalPosition(){
+        let rendoffx = (this.x-lookingAtTile.x ) % 4;
+        let rendoffy= (this.z-lookingAtTile.y)  % 4;
+        
+        if(rendoffx < 0){
+         rendoffx = rendoffx % -4
+        }
+        if(rendoffy < 0){
+         rendoffy = rendoffy % -4
+        }
+        return {x:globalPosition.x+rendoffx,y:globalPosition.y+rendoffy}
+    }
     render(){
        
-      let rendoffx = (this.x-lookingAtTile.x ) % 4;
-       let rendoffy= (this.z-lookingAtTile.y)  % 4;
-       
-       if(rendoffx < 0){
-        rendoffx = rendoffx % -4
-       }
-       if(rendoffy < 0){
-        rendoffy = rendoffy % -4
-       }
+     
+        let ourGlobalPos = this.getGlobalPosition();
+    
+        this.loadCluster(getTile(ourGlobalPos.x,ourGlobalPos.y))
 
-     //   if(rendoffx > -2 && rendoffx < 2 && rendoffy > -2 && rendoffy < 2 )
-        this.loadCluster(getTile(globalPosition.x+rendoffx,globalPosition.y+rendoffy))
-     //   else{
-      //      this.loadCluster(null);
-      //  }
     }
 }
 
@@ -199,6 +204,7 @@ function initCity() {
     //Events
     window.addEventListener('resize', onResize, false)
     window.addEventListener('mousemove', onMouseMove, false)
+    window.addEventListener('mousedown', onMouseDown, false)
 
     // Load map
     setTile(0,0,"shops");
@@ -238,6 +244,26 @@ function onMouseMove(event) {
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
 
 }
+function onMouseDown(event) {
+    event.preventDefault()
+    raycaster.setFromCamera(mouse, camera);
+    var intersects = raycaster.intersectObject(scene, true);
+    if (intersects.length > 0) {
+        var object = intersects[0].object;
+        var tile = object.userData.tile
+        if(tile){
+       
+            console.log(tile);
+            let tileGlobalPosition = tile.getGlobalPosition();
+
+            
+
+            setTile(tileGlobalPosition.x,tileGlobalPosition.y,this.clusterNames[Math.floor(Math.random()*8)])
+        }
+        
+     //  object.material.color.set( Math.random() * 0xffffff );
+    }
+}
 
 function animate() {
     requestAnimationFrame(animate)
@@ -253,29 +279,16 @@ function render() {
     controls.update()
 
     let rx = 1-((130 - (camera.position.x - 60 ) )/ 420 )
-    let rz = 1-((130 - (camera.position.z -60  ) )/ 420 )
+    let rz = 1-((130 - (camera.position.z -60  ) )/ 420 ) 
 
     lookingAtTile = {x:(rx*8)  , y:(rz*8)};
     
-     // console.log(lookingAtTile,relOffset,innerTileOffset,globalPosition);
+  
      globalPosition = {x:startingPos.x +relOffset.x + (lookingAtTile.x-innerTileOffset.x)  ,y:startingPos.y +relOffset.z + (lookingAtTile.y-innerTileOffset.y)}
-    // console.log(globalPosition)
+  
+    let resetOffset= 80;
 
-    let resetOffset= 63;
-    raycaster.setFromCamera(mouse, camera);
-
-    var intersects = raycaster.intersectObject(scene, true);
-
-    if (intersects.length > 0) {
-        
-        var object = intersects[0].object;
-      //  console.log("TILED");
-        if(object.tile){
-     
-        }
-       // object.material.color.set( Math.random() * 0xffffff );
-    
-    }
+   
 
    if (camera.position.x > resetOffset*2) {
       
