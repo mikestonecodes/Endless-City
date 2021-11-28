@@ -172,6 +172,7 @@ class Tile {
 
     }
 }
+  // Load map
 
 initCity()
 animate()
@@ -228,12 +229,7 @@ function initCity() {
     window.addEventListener('mousemove', onMouseMove, false)
     window.addEventListener('mousedown', onMouseDown, false)
 
-    // Load map
-    setTile(0,0,"shops");
-
-    setTile(100,1,"stadium");
-    setTile(100,2,"park");
-    setTile(99,2,"house");
+  
 
     //8x8 road grid
     loader.load(`js/clusters/road.glb`, (gltf) => {
