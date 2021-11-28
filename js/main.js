@@ -92,6 +92,13 @@ class Tile {
         if(cluster){
         loader.load(`js/clusters/${cluster}.glb`, (gltf) => {
            if(this.gtlfScene )scene.remove(this.gtlfScene )
+           gltf.scene.traverse(function (child) {
+               console.log
+            if (child.isMesh) { 
+                child.receiveShadow = true
+                child.castShadow = true
+            }
+        })
             this.gtlfScene = gltf.scene; 
             this.gtlfScene.position.set((this.x-5) * 60, 0, (this.z-5) * 60)  
             scene.add(this.gtlfScene )
@@ -101,9 +108,15 @@ class Tile {
 
     render(){
        
-      let rendoffx = (this.x-lookingAtTile.x );
-       let rendoffy= (this.z-lookingAtTile.y);
+      let rendoffx = (this.x-lookingAtTile.x ) % 4;
+       let rendoffy= (this.z-lookingAtTile.y)  % 4;
        
+       if(rendoffx < 0){
+        rendoffx = rendoffx % -4
+       }
+       if(rendoffy < 0){
+        rendoffy = rendoffy % -4
+       }
 
      //   if(rendoffx > -2 && rendoffx < 2 && rendoffy > -2 && rendoffy < 2 )
         this.loadCluster(getTile(globalPosition.x+rendoffx,globalPosition.y+rendoffy))
@@ -249,6 +262,21 @@ function render() {
     // console.log(globalPosition)
 
     let resetOffset= 63;
+    raycaster.setFromCamera(mouse, camera);
+
+    var intersects = raycaster.intersectObject(scene, true);
+
+    if (intersects.length > 0) {
+        
+        var object = intersects[0].object;
+      //  console.log("TILED");
+        if(object.tile){
+     
+        }
+       // object.material.color.set( Math.random() * 0xffffff );
+    
+    }
+
    if (camera.position.x > resetOffset*2) {
       
         controls.target.x -= LEAP
@@ -315,7 +343,7 @@ function render() {
 function loadCars({ x, z, cluster, direction }) {
     loader.load(`js/clusters/${cluster}.gltf`, (gltf) => {
         gltf.scene.traverse(function (child) {
-            if (child.isMesh) {
+            if (child.isMesh) { 
                 child.receiveShadow = true
                 child.castShadow = true
             }
