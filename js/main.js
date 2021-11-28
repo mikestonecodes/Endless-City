@@ -91,8 +91,8 @@ class Tile {
         this.cluster = cluster;
         if(cluster){
         loader.load(`js/clusters/${cluster}.glb`, (gltf) => {
-            if(this.gtlfScene )scene.remove(this.gtlfScene )
-            this.gtlfScene = gltf.scene;
+           if(this.gtlfScene )scene.remove(this.gtlfScene )
+            this.gtlfScene = gltf.scene; 
             this.gtlfScene.position.set((this.x-5) * 60, 0, (this.z-5) * 60)  
             scene.add(this.gtlfScene )
         })
@@ -101,11 +101,12 @@ class Tile {
 
     render(){
        
-      let rendoffx = this.x-lookingAtTile.x  ;
-       let rendoffy= this.z-lookingAtTile.y ;
-        
+      let rendoffx = (this.x-lookingAtTile.x );
+       let rendoffy= (this.z-lookingAtTile.y);
+       
+
      //   if(rendoffx > -2 && rendoffx < 2 && rendoffy > -2 && rendoffy < 2 )
-            this.loadCluster(getTile(globalPosition.x+rendoffx,globalPosition.y+rendoffy))
+        this.loadCluster(getTile(globalPosition.x+rendoffx,globalPosition.y+rendoffy))
      //   else{
       //      this.loadCluster(null);
       //  }
@@ -241,37 +242,46 @@ function render() {
     let rx = 1-((130 - (camera.position.x - 60 ) )/ 420 )
     let rz = 1-((130 - (camera.position.z -60  ) )/ 420 )
 
-    lookingAtTile = {x:Math.round(rx*8)  , y: Math.round(rz*8)};
+    lookingAtTile = {x:(rx*8)  , y:(rz*8)};
     
-    globalPosition = {x:startingPos.x +relOffset.x + (lookingAtTile.x-innerTileOffset.x)  ,y:startingPos.y +relOffset.z + (lookingAtTile.y-innerTileOffset.y)}
+     // console.log(lookingAtTile,relOffset,innerTileOffset,globalPosition);
+     globalPosition = {x:startingPos.x +relOffset.x + (lookingAtTile.x-innerTileOffset.x)  ,y:startingPos.y +relOffset.z + (lookingAtTile.y-innerTileOffset.y)}
+    // console.log(globalPosition)
 
-   // console.log(lookingAtTile,relOffset,innerTileOffset,globalPosition);
-    
-   if (camera.position.x > 130) {
+    let resetOffset= 63;
+   if (camera.position.x > resetOffset*2) {
+      
         controls.target.x -= LEAP
         camera.position.x -= LEAP
         carList.forEach((car) => (car.position.x -= LEAP))
-       relOffset.x -=8;
+       relOffset.x +=4;
+      console.log("WRAPPED")
        
-    } else if (camera.position.x < -130) {
+    } else if (camera.position.x < -resetOffset*2) {
         controls.target.x += LEAP
         camera.position.x += LEAP
         carList.forEach((car) => (car.position.x += LEAP))
-      relOffset.x +=8;
+     relOffset.x -=4;
+     console.log("WRAPPED")
+     
     }
-    if (camera.position.z > 130) {
+    if (camera.position.z > resetOffset*2) {
         controls.target.z -= LEAP
         camera.position.z -= LEAP
         carList.forEach((car) => (car.position.z -= LEAP))
-        relOffset.z -=8;
-    } else if (camera.position.z < -130) {
+        relOffset.z +=4;
+        console.log("WRAPPED")
+      
+    } else if (camera.position.z < -resetOffset*2) {
         controls.target.z += LEAP
         camera.position.z += LEAP
         carList.forEach((car) => (car.position.z += LEAP))
-       relOffset.z +=8;
+       relOffset.z -=4;
+       console.log("WRAPPED")
+    
     }
    
-    
+
     carList.forEach((car) => {
         car.r.set(
             new THREE.Vector3(car.position.x + 58, 1, car.position.z),
