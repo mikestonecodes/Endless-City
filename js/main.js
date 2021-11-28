@@ -1,4 +1,5 @@
 THREE.Cache.enabled = true;
+
 const NORTH = 1,
     EAST = -0.5,
     SOUTH = 2,
@@ -16,7 +17,8 @@ var camera,
     raycaster = new THREE.Raycaster(),
     carList = [],
     manager = new THREE.LoadingManager(),
-    loader = new THREE.GLTFLoader(manager)
+    loader = new THREE.GLTFLoader(manager),
+    pane = new Tweakpane.Pane();
 
 var clusterNames = [
     'factory',
@@ -41,36 +43,53 @@ var tiles = [];
 
 var _localTiles = [];
 
-var startingLoc;
-
 var lclpos= [0,0]
 
 let lookingAtTile = {x:0,y:0}
+
+let globalPosition = {x:0,y:0}
+
+let relOffset = {x:0,z:0}
+
+let innerTileOffset = {x:5,y:5};
 function getCoordsFromHash(){
     if(location.hash){
-        startingLoc=  location.hash.split("#")[1].split(",");
+        let pos = location.hash.split("#")[1].split(",");
+        goToCoord({x:parseInt(pos[0]),y:parseInt(pos[1])});
     }
 }
+
+function goToCoord({x,y}){
+    startingPos=  {x,y}
+    relOffset = {x:0,z:0};
+
+    if(controls)controls.target.x = 0
+    if(camera)camera.position.x = 41.56269377774534
+    if(controls)controls.target.z = 0
+    if(camera)camera.position.z = 41.562693777745345
+}
+
 getCoordsFromHash();
 
 window.addEventListener('hashchange', getCoordsFromHash, false);
 
+
 class Tile {
-     constructor(x,z,cluster){
-      
+     constructor(x,z,cluster){   
          this.x = x;
          this.z = z;
-         this.loadCluster(cluster);
-        
+       
      }
+
      loadCluster(cluster) {
       
-
+        if(! cluster&& this.gtlfScene) {
+            scene.remove(this.gtlfScene )
+        }
         if(cluster == this.cluster)return;
       
         this.cluster = cluster;
-       
-
+        if(cluster){
         loader.load(`js/clusters/${cluster}.glb`, (gltf) => {
             if(this.gtlfScene )scene.remove(this.gtlfScene )
             this.gtlfScene = gltf.scene;
@@ -78,17 +97,17 @@ class Tile {
             scene.add(this.gtlfScene )
         })
     }
+    }
 
     render(){
       
-        
-    if(lookingAtTile.x ==  this.x  && lookingAtTile.y ==  this.z){
-        this.loadCluster("park")
-    }else{
-        this.loadCluster("gas")
-    }
+        if(lookingAtTile.x ==  this.x  && lookingAtTile.y ==  this.z){
+            this.loadCluster("park")
+        }else{
+            this.loadCluster()
+        }
     
-}
+    }
 }
 
 initCity()
@@ -103,7 +122,7 @@ function setTile(x,y,clusterName){
 function initCity() {
     // Statistics settings
     stats = new Stats()
-    stats.showPanel(0)
+
     document.body.appendChild(stats.dom)
 
     // Manager settings
@@ -162,7 +181,11 @@ function initCity() {
     window.addEventListener('mousemove', onMouseMove, false)
 
     // Load map
-    setTile(1,1,"shops");
+    setTile(0,0,"shops");
+
+    setTile(100,1,"stadium");
+
+
 
     //8x8 road grid
     loader.load(`js/clusters/road.glb`, (gltf) => {
@@ -172,16 +195,15 @@ function initCity() {
     
     for (let z = 0; z < 8; z++) {
         for (let x = 0; x < 8; x++) {
-            if(x ==0  )cluster = "shops";
-            else cluster = "gas"
-            _localTiles.push(new Tile(x,z,cluster));
+         
+            _localTiles.push(new Tile(x,z));
         }
     }
     
 
-    if (screen.width > 768) {
+   // if (screen.width > 768) {
         loadCars({ x: 1, z: 0, cluster: 'cars' })
-    }
+    //}
 }
 
 function onResize() {
@@ -202,6 +224,10 @@ function animate() {
     render()
 }
 
+function goTo(x,y){
+    this.globalPosition = {x,y}    
+}
+
 function render() {
     stats.begin()
     controls.update()
@@ -210,27 +236,33 @@ function render() {
     let rz = 1-((130 - (camera.position.z -60  ) )/ 420 )
 
     lookingAtTile = {x:Math.round(rx*8)  , y: Math.round(rz*8)};
- 
-   
+    
+    globalPosition = {x:startingPos.x +relOffset.x + (lookingAtTile.x-innerTileOffset.x)  ,y:startingPos.y +relOffset.z + (lookingAtTile.y-innerTileOffset.y)}
 
- 
+   // console.log(lookingAtTile,relOffset,innerTileOffset,globalPosition);
+    
    if (camera.position.x > 130) {
         controls.target.x -= LEAP
         camera.position.x -= LEAP
         carList.forEach((car) => (car.position.x -= LEAP))
+       relOffset.x -=1;
+       
     } else if (camera.position.x < -130) {
         controls.target.x += LEAP
         camera.position.x += LEAP
         carList.forEach((car) => (car.position.x += LEAP))
+      relOffset.x +=1;
     }
     if (camera.position.z > 130) {
         controls.target.z -= LEAP
         camera.position.z -= LEAP
         carList.forEach((car) => (car.position.z -= LEAP))
+        relOffset.z -=1;
     } else if (camera.position.z < -130) {
         controls.target.z += LEAP
         camera.position.z += LEAP
         carList.forEach((car) => (car.position.z += LEAP))
+       relOffset.z +=1;
     }
    
     
