@@ -51,6 +51,8 @@ function lookedAtNewTile(pos){
     }
     console.log("looked at new Tile!","global",globalPosition,"local",lookingAtTile)
     
+    history.pushState(null,null,'#'+parseInt(globalPosition.x)+","+parseInt(globalPosition.y));
+
     // POLLING FOR TILES?
     //gunTiles.get(x).get(y).once(tile=>{}) ?
     
