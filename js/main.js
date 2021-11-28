@@ -1,3 +1,4 @@
+THREE.Cache.enabled = true;
 const NORTH = 1,
     EAST = -0.5,
     SOUTH = 2,
@@ -42,6 +43,9 @@ var _localTiles = [];
 
 var startingLoc;
 
+var lclpos= [0,0]
+
+let lookingAtTile = {x:0,y:0}
 function getCoordsFromHash(){
     if(location.hash){
         startingLoc=  location.hash.split("#")[1].split(",");
@@ -53,37 +57,38 @@ window.addEventListener('hashchange', getCoordsFromHash, false);
 
 class Tile {
      constructor(x,z,cluster){
-         this.cluster = cluster;
+      
+         this.x = x;
+         this.z = z;
+         this.loadCluster(cluster);
         
-         this.loadCluster({x,z,cluster});
      }
-     loadCluster({ x, z, cluster, direction }) {
+     loadCluster(cluster) {
+      
+
+        if(cluster == this.cluster)return;
+      
+        this.cluster = cluster;
+       
+
         loader.load(`js/clusters/${cluster}.glb`, (gltf) => {
-            gltf.scene.traverse(function (child) {
-                if (child.isMesh) {
-                    child.receiveShadow = true
-                    child.castShadow = true
-                }
-            })
-    
-            gltf.scene.position.set(x * 60, 0, z * 60)
-            if (direction) gltf.scene.rotation.y = Math.PI * direction
-            else if (direction === EAST) gltf.scene.position.x += 20
-            else if (direction === WEST) gltf.scene.position.z += 20
-            else if (direction === NORTH)
-                gltf.scene.position.set(
-                    gltf.scene.position.x + 20,
-                    0,
-                    ogltfbj.scene.position.z + 20
-                )
-    
-            scene.add(gltf.scene)
+            if(this.gtlfScene )scene.remove(this.gtlfScene )
+            this.gtlfScene = gltf.scene;
+            this.gtlfScene.position.set((this.x-5) * 60, 0, (this.z-5) * 60)  
+            scene.add(this.gtlfScene )
         })
     }
 
     render(){
+      
         
+    if(lookingAtTile.x ==  this.x  && lookingAtTile.y ==  this.z){
+        this.loadCluster("park")
+    }else{
+        this.loadCluster("gas")
     }
+    
+}
 }
 
 initCity()
@@ -102,14 +107,19 @@ function initCity() {
     document.body.appendChild(stats.dom)
 
     // Manager settings
+
+
+
+    /*
     manager.onProgress = (url, i, all) =>
         (document.querySelector('p').textContent = `${Math.ceil(
             (i / all) * 100
         )}%`)
-    manager.onLoad = () => {
-        document.querySelector('.load').remove()
-    }
 
+    manager.onLoad = () => {
+    //    document.querySelector('.load').remove()
+    }
+*/
     // Scene settings
     scene = new THREE.Scene()
     scene.background = new THREE.Color(0x000000)
@@ -122,7 +132,7 @@ function initCity() {
         50,
         200
     )
-    camera.position.set(10, 100, 10)
+    camera.position.set(0, 100, 0)
     controls = new THREE.MapControls(camera)
 
     // Lights
@@ -154,11 +164,17 @@ function initCity() {
     // Load map
     setTile(1,1,"shops");
 
+    //8x8 road grid
+    loader.load(`js/clusters/road.glb`, (gltf) => {
+        gltf.scene.position.set(60, 0, 0)  
+        scene.add(gltf.scene)
+    })
     
-    for (let y = 0; y < 4; y++) {
-        
-        for (let x = 0; x < 4; x++) {
-            _localTiles.push(new Tile(x,y,"road"));
+    for (let z = 0; z < 8; z++) {
+        for (let x = 0; x < 8; x++) {
+            if(x ==0  )cluster = "shops";
+            else cluster = "gas"
+            _localTiles.push(new Tile(x,z,cluster));
         }
     }
     
@@ -190,13 +206,19 @@ function render() {
     stats.begin()
     controls.update()
 
+    let rx = 1-((130 - (camera.position.x - 60 ) )/ 420 )
+    let rz = 1-((130 - (camera.position.z -60  ) )/ 420 )
 
+    lookingAtTile = {x:Math.round(rx*8)  , y: Math.round(rz*8)};
+ 
+   
 
-    if (camera.position.x > 130) {
+ 
+   if (camera.position.x > 130) {
         controls.target.x -= LEAP
         camera.position.x -= LEAP
         carList.forEach((car) => (car.position.x -= LEAP))
-    } else if (camera.position.x < -120) {
+    } else if (camera.position.x < -130) {
         controls.target.x += LEAP
         camera.position.x += LEAP
         carList.forEach((car) => (car.position.x += LEAP))
@@ -205,14 +227,13 @@ function render() {
         controls.target.z -= LEAP
         camera.position.z -= LEAP
         carList.forEach((car) => (car.position.z -= LEAP))
-    } else if (camera.position.z < -120) {
+    } else if (camera.position.z < -130) {
         controls.target.z += LEAP
         camera.position.z += LEAP
         carList.forEach((car) => (car.position.z += LEAP))
     }
-
-    raycaster.setFromCamera(mouse, camera)
-
+   
+    
     carList.forEach((car) => {
         car.r.set(
             new THREE.Vector3(car.position.x + 58, 1, car.position.z),
