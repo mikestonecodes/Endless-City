@@ -45,37 +45,44 @@ var startingPos =  {x:0,y:0};
 // GUN STUFF 
 var gunTiles = Gun().get('tiles')
 
-
-//DB GLOBAL COORDS!
 function lookedAtNewTile(pos){
     if(this.pTile && Math.round(this.pTile.x)== Math.round(pos.x) && Math.round(this.pTile.y) == Math.round(pos.y)){
         return;
     }
     console.log("looked at new Tile!","global",globalPosition,"local",lookingAtTile)
+    
+    // POLLING FOR TILES?
+    //gunTiles.get(x).get(y).once(tile=>{}) ?
+    
     this.pTile = pos;
 }
 
+function setTile(x,y,clusterName){
+    placeTile({x,y,clusterName})
+    //GUN STUFF HERE !
+    //gunTiles.set(x).set(y).put(clusterName); ?
+}
+
+
 gunTiles.map().on((tile)=>{
     console.log("GOT GUN",tile)
+    placeTile(tile);
+});
+
+
+placeTile({x:0,y:0,clusterName:"shops"});
+placeTile({x:100,y:1,clusterName:"stadium"});
+placeTile({x:100,y:2,clusterName:"park"});
+placeTile({x:99,y:2,clusterName:"house"});
+
+function placeTile(tile){    
     if(!tiles[tile.x])tiles[tile.x]=[];
     tiles[tile.x][tile.y]=tile.clusterName; 
-}
-);
-
-function setTile(x,y,clusterName){
-    gunTiles.set({x,y,clusterName});
-}
+};
 
 function getTile(x,y){
-  
     if(!tiles[x])return null;
-    return tiles[x][y]
-}
-
-function getTile2(x,y){
-  
-    if(!tiles[x])return null;
-    return tiles[x][y]
+    return tiles[x][y];
 }
 
 
