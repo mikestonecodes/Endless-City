@@ -104,11 +104,11 @@ class Tile {
       let rendoffx = this.x-lookingAtTile.x  ;
        let rendoffy= this.z-lookingAtTile.y ;
         
-        if(rendoffx > -2 && rendoffx < 2 && rendoffy > -2 && rendoffy < 2 )
+     //   if(rendoffx > -2 && rendoffx < 2 && rendoffy > -2 && rendoffy < 2 )
             this.loadCluster(getTile(globalPosition.x+rendoffx,globalPosition.y+rendoffy))
-        else{
-            this.loadCluster(null);
-        }
+     //   else{
+      //      this.loadCluster(null);
+      //  }
     }
 }
 
@@ -251,24 +251,24 @@ function render() {
         controls.target.x -= LEAP
         camera.position.x -= LEAP
         carList.forEach((car) => (car.position.x -= LEAP))
-       relOffset.x -=1;
+       relOffset.x -=8;
        
     } else if (camera.position.x < -130) {
         controls.target.x += LEAP
         camera.position.x += LEAP
         carList.forEach((car) => (car.position.x += LEAP))
-      relOffset.x +=1;
+      relOffset.x +=8;
     }
     if (camera.position.z > 130) {
         controls.target.z -= LEAP
         camera.position.z -= LEAP
         carList.forEach((car) => (car.position.z -= LEAP))
-        relOffset.z -=1;
+        relOffset.z -=8;
     } else if (camera.position.z < -130) {
         controls.target.z += LEAP
         camera.position.z += LEAP
         carList.forEach((car) => (car.position.z += LEAP))
-       relOffset.z +=1;
+       relOffset.z +=8;
     }
    
     
