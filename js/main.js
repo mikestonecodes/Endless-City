@@ -36,84 +36,64 @@ var clusterNames = [
     'supermarket',
 ]
 
-const cluster = [
-    { x: 1, z: 0, cluster: 'road' },
+var tiles = [];
 
-    { x: 2, z: 2, cluster: clusterNames[0], direction: SOUTH },
-    { x: 2, z: 1, cluster: clusterNames[1], direction: SOUTH },
-    { x: 2, z: 0, cluster: clusterNames[2], direction: SOUTH },
-    { x: 2, z: -1, cluster: clusterNames[3], direction: SOUTH },
-    { x: 2, z: -2, cluster: clusterNames[0], direction: SOUTH },
-    { x: 2, z: -3, cluster: clusterNames[1], direction: SOUTH },
-    { x: 2, z: -4, cluster: clusterNames[2], direction: SOUTH },
-    { x: 2, z: -5, cluster: clusterNames[3], direction: SOUTH },
+var _localTiles = [];
 
-    { x: 1, z: 2, cluster: clusterNames[4], direction: SOUTH },
-    { x: 1, z: 1, cluster: clusterNames[7], direction: SOUTH },
-    { x: 1, z: 0, cluster: clusterNames[8], direction: SOUTH },
-    { x: 1, z: -1, cluster: clusterNames[9], direction: SOUTH },
-    { x: 1, z: -2, cluster: clusterNames[4], direction: SOUTH },
-    { x: 1, z: -3, cluster: clusterNames[7], direction: SOUTH },
-    { x: 1, z: -4, cluster: clusterNames[8], direction: SOUTH },
-    { x: 1, z: -5, cluster: clusterNames[9], direction: SOUTH },
+var startingLoc;
 
-    { x: 0, z: 2, cluster: clusterNames[5], direction: SOUTH },
-    { x: 0, z: 1, cluster: clusterNames[10], direction: SOUTH },
-    { x: 0, z: 0, cluster: clusterNames[12], direction: SOUTH },
-    { x: 0, z: -1, cluster: clusterNames[13], direction: SOUTH },
-    { x: 0, z: -2, cluster: clusterNames[5], direction: SOUTH },
-    { x: 0, z: -3, cluster: clusterNames[10], direction: SOUTH },
-    { x: 0, z: -4, cluster: clusterNames[12], direction: SOUTH },
-    { x: 0, z: -5, cluster: clusterNames[13], direction: SOUTH },
+function getCoordsFromHash(){
+    if(location.hash){
+        startingLoc=  location.hash.split("#")[1].split(",");
+    }
+}
+getCoordsFromHash();
 
-    { x: -1, z: 2, cluster: clusterNames[6], direction: SOUTH },
-    { x: -1, z: 1, cluster: clusterNames[11], direction: SOUTH },
-    { x: -1, z: 0, cluster: clusterNames[14], direction: SOUTH },
-    { x: -1, z: -1, cluster: clusterNames[15], direction: SOUTH },
-    { x: -1, z: -2, cluster: clusterNames[6], direction: SOUTH },
-    { x: -1, z: -3, cluster: clusterNames[11], direction: SOUTH },
-    { x: -1, z: -4, cluster: clusterNames[14], direction: SOUTH },
-    { x: -1, z: -5, cluster: clusterNames[15], direction: SOUTH },
+window.addEventListener('hashchange', getCoordsFromHash, false);
 
-    { x: -2, z: 2, cluster: clusterNames[0], direction: SOUTH },
-    { x: -2, z: 1, cluster: clusterNames[1], direction: SOUTH },
-    { x: -2, z: 0, cluster: clusterNames[2], direction: SOUTH },
-    { x: -2, z: -1, cluster: clusterNames[3], direction: SOUTH },
-    { x: -2, z: -2, cluster: clusterNames[0], direction: SOUTH },
-    { x: -2, z: -3, cluster: clusterNames[1], direction: SOUTH },
-    { x: -2, z: -4, cluster: clusterNames[2], direction: SOUTH },
-    { x: -2, z: -5, cluster: clusterNames[3], direction: SOUTH },
+class Tile {
+     constructor(x,z,cluster){
+         this.cluster = cluster;
+        
+         this.loadCluster({x,z,cluster});
+     }
+     loadCluster({ x, z, cluster, direction }) {
+        loader.load(`js/clusters/${cluster}.glb`, (gltf) => {
+            gltf.scene.traverse(function (child) {
+                if (child.isMesh) {
+                    child.receiveShadow = true
+                    child.castShadow = true
+                }
+            })
+    
+            gltf.scene.position.set(x * 60, 0, z * 60)
+            if (direction) gltf.scene.rotation.y = Math.PI * direction
+            else if (direction === EAST) gltf.scene.position.x += 20
+            else if (direction === WEST) gltf.scene.position.z += 20
+            else if (direction === NORTH)
+                gltf.scene.position.set(
+                    gltf.scene.position.x + 20,
+                    0,
+                    ogltfbj.scene.position.z + 20
+                )
+    
+            scene.add(gltf.scene)
+        })
+    }
 
-    { x: -3, z: 2, cluster: clusterNames[4], direction: SOUTH },
-    { x: -3, z: 1, cluster: clusterNames[7], direction: SOUTH },
-    { x: -3, z: 0, cluster: clusterNames[8], direction: SOUTH },
-    { x: -3, z: -1, cluster: clusterNames[9], direction: SOUTH },
-    { x: -3, z: -2, cluster: clusterNames[4], direction: SOUTH },
-    { x: -3, z: -3, cluster: clusterNames[7], direction: SOUTH },
-    { x: -3, z: -4, cluster: clusterNames[8], direction: SOUTH },
-    { x: -3, z: -5, cluster: clusterNames[9], direction: SOUTH },
-
-    { x: -4, z: 2, cluster: clusterNames[5], direction: SOUTH },
-    { x: -4, z: 1, cluster: clusterNames[10], direction: SOUTH },
-    { x: -4, z: 0, cluster: clusterNames[12], direction: SOUTH },
-    { x: -4, z: -1, cluster: clusterNames[13], direction: SOUTH },
-    { x: -4, z: -2, cluster: clusterNames[5], direction: SOUTH },
-    { x: -4, z: -3, cluster: clusterNames[10], direction: SOUTH },
-    { x: -4, z: -4, cluster: clusterNames[12], direction: SOUTH },
-    { x: -4, z: -5, cluster: clusterNames[13], direction: SOUTH },
-
-    { x: -5, z: 2, cluster: clusterNames[6], direction: SOUTH },
-    { x: -5, z: 1, cluster: clusterNames[11], direction: SOUTH },
-    { x: -5, z: 0, cluster: clusterNames[14], direction: SOUTH },
-    { x: -5, z: -1, cluster: clusterNames[15], direction: SOUTH },
-    { x: -5, z: -2, cluster: clusterNames[6], direction: SOUTH },
-    { x: -5, z: -3, cluster: clusterNames[11], direction: SOUTH },
-    { x: -5, z: -4, cluster: clusterNames[14], direction: SOUTH },
-    { x: -5, z: -5, cluster: clusterNames[15], direction: SOUTH },
-]
+    render(){
+        
+    }
+}
 
 initCity()
 animate()
+
+
+function setTile(x,y,clusterName){
+    if(!tiles[x])tiles[x]=[];
+    tiles[x][y]=clusterName;
+}
 
 function initCity() {
     // Statistics settings
@@ -172,7 +152,16 @@ function initCity() {
     window.addEventListener('mousemove', onMouseMove, false)
 
     // Load map
-    cluster.forEach((cls) => loadCluster(cls))
+    setTile(1,1,"shops");
+
+    
+    for (let y = 0; y < 4; y++) {
+        
+        for (let x = 0; x < 4; x++) {
+            _localTiles.push(new Tile(x,y,"road"));
+        }
+    }
+    
 
     if (screen.width > 768) {
         loadCars({ x: 1, z: 0, cluster: 'cars' })
@@ -189,6 +178,7 @@ function onMouseMove(event) {
     event.preventDefault()
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+
 }
 
 function animate() {
@@ -199,6 +189,8 @@ function animate() {
 function render() {
     stats.begin()
     controls.update()
+
+
 
     if (camera.position.x > 130) {
         controls.target.x -= LEAP
@@ -242,33 +234,14 @@ function render() {
             car.position.z += car.userData.z * car.speed
         }
     })
+    
+    _localTiles.forEach((lc)=>lc.render());
+
     stats.end()
     renderer.render(scene, camera)
 }
 
-function loadCluster({ x, z, cluster, direction }) {
-    loader.load(`js/clusters/${cluster}.glb`, (gltf) => {
-        gltf.scene.traverse(function (child) {
-            if (child.isMesh) {
-                child.receiveShadow = true
-                child.castShadow = true
-            }
-        })
 
-        gltf.scene.position.set(x * 60, 0, z * 60)
-        if (direction) gltf.scene.rotation.y = Math.PI * direction
-        else if (direction === EAST) gltf.scene.position.x += 20
-        else if (direction === WEST) gltf.scene.position.z += 20
-        else if (direction === NORTH)
-            gltf.scene.position.set(
-                gltf.scene.position.x + 20,
-                0,
-                ogltfbj.scene.position.z + 20
-            )
-
-        scene.add(gltf.scene)
-    })
-}
 
 function loadCars({ x, z, cluster, direction }) {
     loader.load(`js/clusters/${cluster}.gltf`, (gltf) => {
