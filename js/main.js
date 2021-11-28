@@ -18,7 +18,7 @@ var camera,
     carList = [],
     manager = new THREE.LoadingManager(),
     loader = new THREE.GLTFLoader(manager),
-    pane = new Tweakpane.Pane();
+    gun = GUN(['https://stonegun.herokuapp.com/gun']);
 
 var clusterNames = [
     'factory',
@@ -38,8 +38,31 @@ var clusterNames = [
     'park',
     'supermarket',
 ]
-
 var tiles = [];
+
+
+var gunTiles = Gun().get('tiles')
+
+gunTiles.map().on((tile)=>{
+    console.log("GOT GUN",tile)
+    setTile2(tile.x,tile.y,tile.clusterName)
+})
+
+function setTile(x,y,clusterName){
+    gunTiles.set({x,y,clusterName});
+}
+function setTile2(x,y,clusterName){
+    if(!tiles[x])tiles[x]=[];
+    tiles[x][y]=clusterName; 
+}
+
+function getTile(x,y){
+  
+    if(!tiles[x])return null;
+    return tiles[x][y]
+}
+
+
 
 var _localTiles = [];
 
@@ -135,14 +158,7 @@ initCity()
 animate()
 
 
-function setTile(x,y,clusterName){
-    if(!tiles[x])tiles[x]=[];
-    tiles[x][y]=clusterName;
-}
-function getTile(x,y){
-    if(!tiles[x])return null;
-    return tiles[x][y]
-}
+
 
 function initCity() {
     // Statistics settings
@@ -244,6 +260,7 @@ function onMouseMove(event) {
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
 
 }
+
 function onMouseDown(event) {
     event.preventDefault()
     raycaster.setFromCamera(mouse, camera);
