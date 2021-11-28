@@ -100,13 +100,15 @@ class Tile {
     }
 
     render(){
-      
-        if(lookingAtTile.x ==  this.x  && lookingAtTile.y ==  this.z){
-            this.loadCluster("park")
-        }else{
-            this.loadCluster()
+       
+      let rendoffx = this.x-lookingAtTile.x  ;
+       let rendoffy= this.z-lookingAtTile.y ;
+        
+        if(rendoffx > -2 && rendoffx < 2 && rendoffy > -2 && rendoffy < 2 )
+            this.loadCluster(getTile(globalPosition.x+rendoffx,globalPosition.y+rendoffy))
+        else{
+            this.loadCluster(null);
         }
-    
     }
 }
 
@@ -117,6 +119,10 @@ animate()
 function setTile(x,y,clusterName){
     if(!tiles[x])tiles[x]=[];
     tiles[x][y]=clusterName;
+}
+function getTile(x,y){
+    if(!tiles[x])return null;
+    return tiles[x][y]
 }
 
 function initCity() {
@@ -184,8 +190,8 @@ function initCity() {
     setTile(0,0,"shops");
 
     setTile(100,1,"stadium");
-
-
+    setTile(100,2,"park");
+    setTile(99,2,"house");
 
     //8x8 road grid
     loader.load(`js/clusters/road.glb`, (gltf) => {
