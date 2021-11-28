@@ -41,20 +41,31 @@ var clusterNames = [
 var tiles = [];
 var startingPos =  {x:0,y:0};
 
+
+// GUN STUFF 
 var gunTiles = Gun().get('tiles')
+
+
+//DB GLOBAL COORDS!
+function lookedAtNewTile(pos){
+    if(this.pTile && Math.round(this.pTile.x)== Math.round(pos.x) && Math.round(this.pTile.y) == Math.round(pos.y)){
+        return;
+    }
+    console.log("looked at new Tile!","global",globalPosition,"local",lookingAtTile)
+    this.pTile = pos;
+}
 
 gunTiles.map().on((tile)=>{
     console.log("GOT GUN",tile)
-    setTile2(tile.x,tile.y,tile.clusterName)
-})
+    if(!tiles[tile.x])tiles[tile.x]=[];
+    tiles[tile.x][tile.y]=tile.clusterName; 
+}
+);
 
 function setTile(x,y,clusterName){
     gunTiles.set({x,y,clusterName});
 }
-function setTile2(x,y,clusterName){
-    if(!tiles[x])tiles[x]=[];
-    tiles[x][y]=clusterName; 
-}
+
 function getTile(x,y){
   
     if(!tiles[x])return null;
@@ -80,6 +91,9 @@ let globalPosition = {x:0,y:0}
 let relOffset = {x:0,z:0}
 
 let innerTileOffset = {x:5,y:5};
+
+let localPos = {x:0,y:0};
+
 function getCoordsFromHash(){
     if(location.hash){
         let pos = location.hash.split("#")[1].split(",");
@@ -171,20 +185,7 @@ function initCity() {
 
     document.body.appendChild(stats.dom)
 
-    // Manager settings
-
-
-
-    /*
-    manager.onProgress = (url, i, all) =>
-        (document.querySelector('p').textContent = `${Math.ceil(
-            (i / all) * 100
-        )}%`)
-
-    manager.onLoad = () => {
-    //    document.querySelector('.load').remove()
-    }
-*/
+   
     // Scene settings
     scene = new THREE.Scene()
     scene.background = new THREE.Color(0x000000)
@@ -259,10 +260,14 @@ function onResize() {
     renderer.setSize(window.innerWidth, window.innerHeight)
 }
 
+
 function onMouseMove(event) {
     event.preventDefault()
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+
+    this.lookedAtNewTile(lookingAtTile);
+    //gun.get(data.X).get(data.Y).once(plant => { mikeGameLogic.addPlant(plant).onTile(data.X, data.Y) }) }
 
 }
 
@@ -297,14 +302,17 @@ function goTo(x,y){
 }
 
 function render() {
+
+    previousLookingAtTile = lookingAtTile;
+
     stats.begin()
     controls.update()
-
+   
     let rx = 1-((130 - (camera.position.x - 60 ) )/ 420 )
     let rz = 1-((130 - (camera.position.z -60  ) )/ 420 ) 
-
+   
     lookingAtTile = {x:(rx*8)  , y:(rz*8)};
-    
+     
   
      globalPosition = {x:startingPos.x +relOffset.x + (lookingAtTile.x-innerTileOffset.x)  ,y:startingPos.y +relOffset.z + (lookingAtTile.y-innerTileOffset.y)}
   
