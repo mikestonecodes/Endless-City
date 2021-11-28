@@ -18,7 +18,7 @@ var camera,
     carList = [],
     manager = new THREE.LoadingManager(),
     loader = new THREE.GLTFLoader(manager),
-    gun = GUN(['https://stonegun.herokuapp.com/gun']);
+    gun = GUN('https://stonegun.herokuapp.com/gun');
 
 var clusterNames = [
     'factory',
@@ -39,7 +39,7 @@ var clusterNames = [
     'supermarket',
 ]
 var tiles = [];
-
+var startingPos =  {x:0,y:0};
 
 var gunTiles = Gun().get('tiles')
 
@@ -55,8 +55,13 @@ function setTile2(x,y,clusterName){
     if(!tiles[x])tiles[x]=[];
     tiles[x][y]=clusterName; 
 }
-
 function getTile(x,y){
+  
+    if(!tiles[x])return null;
+    return tiles[x][y]
+}
+
+function getTile2(x,y){
   
     if(!tiles[x])return null;
     return tiles[x][y]
