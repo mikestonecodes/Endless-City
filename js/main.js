@@ -92,9 +92,11 @@ function tileView(x,y){
     x = Math.round(x), y = Math.round(y);
     //console.log("try to load", x,y);
     var meta = gunTiles.get(x+','+y);
+    if(meta.watch){ return }
+    meta.watch = true;
     meta.x = meta.x;
     meta.y = meta.y;
-    meta.once(function(data){
+    meta.on(function(data){
         console.log("see", x,y, data);
         if(!data){ return }
         meta.clusterName = data
