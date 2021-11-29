@@ -103,11 +103,7 @@ function loadTilesRadius(x, y, radius) {
 function tileView(x, y) {
     if(listeningFor.includes(x+","+y))return;
     listeningFor.push(x+","+y);
-
-    gunTiles.get(x + ',' + y).on((data) => {
-        console.log("recieved",x,y,data);
-        console.log("listening To ", listeningFor)
-    });
+    gunTiles.get(x + ',' + y).on(() => {}); // update graph
 }
 
 // this is getting called 60fpsx64 times a second! gun.get can work here?
