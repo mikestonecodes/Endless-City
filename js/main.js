@@ -43,13 +43,15 @@ var startingPos =  {x:0,y:0};
 
 
 // GUN STUFF 
-var gunTiles = Gun().get('tiles')
+var gunTiles = gun.get('tiles');
 
 function lookedAtNewTile(pos){
     if(this.pTile && Math.round(this.pTile.x)== Math.round(pos.x) && Math.round(this.pTile.y) == Math.round(pos.y)){
         return;
     }
-    console.log("looked at new Tile!","global",globalPosition,"local",lookingAtTile)
+    //console.log("looked at new Tile!","global",globalPosition,"local",lookingAtTile)
+    //if(window.tileView){ tileView(globalPosition.x, globalPosition.y) } // Mark's function, comment this on/off to enable his code.
+    loadTilesRadius(globalPosition.x, globalPosition.y, 2);
     
     history.pushState(null,null,'#'+parseInt(globalPosition.x)+","+parseInt(globalPosition.y));
 
@@ -59,32 +61,53 @@ function lookedAtNewTile(pos){
     this.pTile = pos;
 }
 
-function setTile(x,y,clusterName){
-    placeTile({x,y,clusterName})
-    //GUN STUFF HERE !
-    //gunTiles.set(x).set(y).put(clusterName); ?
+function setTile(x,y,type){
+    console.log("set", x+','+y, type);
+    gunTiles.get(x+','+y).put(type);
+    tileView(x,y);
 }
 
+function loadTilesRadius(x,y,radius){
+    tileView(x, y);
+    x = Math.round(x);
+    y = Math.round(y);
 
-gunTiles.map().on((tile)=>{
-    console.log("GOT GUN",tile)
-    placeTile(tile);
-});
+    var i = 0; while(i++ < radius){ 
+        tileView(x+i, y);
+        tileView(x-i, y);
 
+        tileView(x, y+i);
+        tileView(x, y-i);
 
-placeTile({x:0,y:0,clusterName:"shops"});
-placeTile({x:100,y:1,clusterName:"stadium"});
-placeTile({x:100,y:2,clusterName:"park"});
-placeTile({x:99,y:2,clusterName:"house"});
+        tileView(x+i, y+i);
+        tileView(x-i, y-i);
 
-function placeTile(tile){    
-    if(!tiles[tile.x])tiles[tile.x]=[];
-    tiles[tile.x][tile.y]=tile.clusterName; 
-};
+        tileView(x-i, y+i);
+        tileView(x+i, y-i);
+    }
+}
+
+function tileView(x,y){
+    x = Math.round(x), y = Math.round(y);
+    //console.log("try to load", x,y);
+    var meta = gunTiles.get(x+','+y);
+    if(meta.watch){ return }
+    meta.watch = true;
+    meta.x = meta.x;
+    meta.y = meta.y;
+    meta.on(function(data){
+        console.log("see", x,y, data);
+        meta.type = data
+        if(!meta.tile){ return }
+        meta.tile.render();
+    });
+}
 
 function getTile(x,y){
-    if(!tiles[x])return null;
-    return tiles[x][y];
+    //if(!tiles[x])return null;
+    //return tiles[x][y];
+    var meta = gunTiles.get(x+','+y);
+    return meta;
 }
 
 
@@ -124,6 +147,10 @@ getCoordsFromHash();
 
 window.addEventListener('hashchange', getCoordsFromHash, false);
 
+loadTilesRadius(lookingAtTile.x, lookingAtTile.y, 1);
+
+var loaded = {};
+var thats = new Map;
 
 class Tile {
      constructor(x,z,cluster){   
@@ -133,31 +160,50 @@ class Tile {
      }
 
      loadCluster(cluster) {
-        
+        /*if(!cluster){ cluster = 'park' }
         if(! cluster&& this.gtlfScene) {
             scene.remove(this.gtlfScene )
         }
         if(cluster == this.cluster)return;
         var that = this;
+        this.cluster = cluster;*/
+
+        if(!cluster){ cluster = 'park' }
+        if(cluster === this.cluster){ return }
+        //if(this.gtlfScene){ scene.remove(this.gtlfScene)}
         this.cluster = cluster;
+        var that = this;
+        thats.set(that.lot.x+',')
+
         if(cluster){
             
-        loader.load(`js/clusters/${cluster}.glb`, (gltf) => {
-           if(this.gtlfScene )scene.remove(this.gtlfScene )
-           this.gtlfScene = gltf.scene; 
-           this.gtlfScene.traverse(function (child) {
+        //console.log("load", cluster, this);
+        var url = `js/clusters/${cluster}.glb`, tmp;
 
-            if (child.isMesh) { 
-                child.receiveShadow = true
-                child.castShadow = true
-            }
-          
-            child.userData.tile = that;
-        })
+        /*if(tmp = loaded[url]){
+            load(tmp)
+        } else {
+            loader.load(url,load);
+        }*/
+        loader.load(url,load);
+
+        function load(gltf){
+            loaded[url] = gltf;
+           if(that.gtlfScene )scene.remove(that.gtlfScene )
+           that.gtlfScene = gltf.scene; 
+           that.gtlfScene.traverse(function (child) {
+
+                if (child.isMesh) { 
+                    child.receiveShadow = true
+                    child.castShadow = true
+                }
+              
+                child.userData.tile = that;
+            })
            
-            this.gtlfScene.position.set((this.x-5) * 60, 0, (this.z-5) * 60)  
-            scene.add(this.gtlfScene )
-        })
+            that.gtlfScene.position.set((that.x-5) * 60, 0, (that.z-5) * 60)  
+            scene.add(that.gtlfScene )
+        }
     }
     }
     getGlobalPosition(){
@@ -174,10 +220,13 @@ class Tile {
     }
     render(){
        
-     
-        let ourGlobalPos = this.getGlobalPosition();
-    
-        this.loadCluster(getTile(ourGlobalPos.x,ourGlobalPos.y))
+
+        this.lot = this.lot || this.getGlobalPosition();
+        var lot = this.lot;
+        var meta = getTile(lot.x, lot.y);
+        meta.tile = this;
+
+        this.loadCluster(meta.type);
 
     }
 }
@@ -237,6 +286,10 @@ function initCity() {
     window.addEventListener('resize', onResize, false)
     window.addEventListener('mousemove', onMouseMove, false)
     window.addEventListener('mousedown', onMouseDown, false)
+    window.addEventListener('mouseup', onMouseUp, false)
+    window.addEventListener('touchmove', onMouseMove, false)
+    window.addEventListener('touchstart', onMouseDown, false)
+    window.addEventListener('touchend', onMouseUp, false)
 
   
 
@@ -265,18 +318,27 @@ function onResize() {
     renderer.setSize(window.innerWidth, window.innerHeight)
 }
 
-
 function onMouseMove(event) {
+
     event.preventDefault()
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
 
     this.lookedAtNewTile(lookingAtTile);
     //gun.get(data.X).get(data.Y).once(plant => { mikeGameLogic.addPlant(plant).onTile(data.X, data.Y) }) }
-
 }
 
-function onMouseDown(event) {
+function onMouseDown(event){
+    onMouseDown.when = +new Date;
+}
+function onMouseUp(event){
+    onMouseUp.when = +new Date;
+    if(onMouseUp.when - onMouseDown.when < 99){
+        onTileClick(event);
+    }
+}
+
+function onTileClick(event) {
     event.preventDefault()
     raycaster.setFromCamera(mouse, camera);
     var intersects = raycaster.intersectObject(scene, true);
@@ -285,17 +347,19 @@ function onMouseDown(event) {
         var tile = object.userData.tile
         if(tile){
        
-            console.log(tile);
             let tileGlobalPosition = tile.getGlobalPosition();
 
-            
+            var i = ((onTileClick.i + 1) % clusterNames.length);
+            onTileClick.i = i;
+            var type = this.clusterNames[i]
 
-            setTile(tileGlobalPosition.x,tileGlobalPosition.y,this.clusterNames[Math.floor(Math.random()*8)])
+            //console.log("click", onTileClick.i);
+            setTile(tileGlobalPosition.x,tileGlobalPosition.y,type);
         }
-        
      //  object.material.color.set( Math.random() * 0xffffff );
     }
 }
+onTileClick.i = 0;
 
 function animate() {
     requestAnimationFrame(animate)
