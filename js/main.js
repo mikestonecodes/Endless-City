@@ -50,7 +50,7 @@ function lookedAtNewTile(pos){
         return;
     }
     //console.log("looked at new Tile!","global",globalPosition,"local",lookingAtTile)
-    //if(window.tileView){ tileView(globalPosition.x, globalPosition.y) } // Mark's function, comment this on/off to enable his code.
+    if(window.tileView){ tileView(globalPosition.x, globalPosition.y) } // Mark's function, comment this on/off to enable his code.
     loadTilesRadius(globalPosition.x, globalPosition.y, 2);
     
     history.pushState(null,null,'#'+parseInt(globalPosition.x)+","+parseInt(globalPosition.y));
@@ -99,7 +99,7 @@ function tileView(x,y){
         console.log("see", x,y, data);
         meta.type = data
         if(!meta.tile){ return }
-        meta.tile.render();
+      //  meta.tile.render();
     });
 }
 
@@ -168,9 +168,9 @@ class Tile {
         var that = this;
         this.cluster = cluster;*/
 
-        if(!cluster){ cluster = 'park' }
+       // if(!cluster){ cluster = 'park' }
         if(cluster === this.cluster){ return }
-        //if(this.gtlfScene){ scene.remove(this.gtlfScene)}
+        if(this.gtlfScene){ scene.remove(this.gtlfScene)}
         this.cluster = cluster;
         var that = this;
         thats.set(that.lot.x+',')
@@ -332,10 +332,10 @@ function onMouseDown(event){
     onMouseDown.when = +new Date;
 }
 function onMouseUp(event){
-    onMouseUp.when = +new Date;
-    if(onMouseUp.when - onMouseDown.when < 99){
+  //  onMouseUp.when = +new Date;
+   // if(onMouseUp.when - onMouseDown.when < 99){
         onTileClick(event);
-    }
+  //  }
 }
 
 function onTileClick(event) {
