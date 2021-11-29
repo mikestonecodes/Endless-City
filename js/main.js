@@ -185,7 +185,7 @@ class Tile {
         } else {
             loader.load(url,load);
         }*/
-        load(tmp);
+        loader.load(url,load);
 
         function load(gltf){
             loaded[url] = gltf;
