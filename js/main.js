@@ -61,10 +61,9 @@ function lookedAtNewTile(pos){
     this.pTile = pos;
 }
 
-function setTile(x,y,clusterName){
-    //placeTile({x,y,clusterName})
-    console.log("set", x+','+y, clusterName);
-    gunTiles.get(x+','+y).put(clusterName);
+function setTile(x,y,type){
+    console.log("set", x+','+y, type);
+    gunTiles.get(x+','+y).put(type);
     tileView(x,y);
 }
 
@@ -98,35 +97,17 @@ function tileView(x,y){
     meta.y = meta.y;
     meta.on(function(data){
         console.log("see", x,y, data);
-        if(!data){ return }
-        meta.clusterName = data
+        meta.type = data
+        if(!meta.tile){ return }
+        meta.tile.render();
     });
 }
-
-/*
-gunTiles.map().on((tile)=>{
-    console.log("GOT GUN",tile)
-    placeTile(tile);
-});
-*/
-
-//placeTile({x:0,y:0,clusterName:"shops"});
-//placeTile({x:100,y:1,clusterName:"stadium"});
-//placeTile({x:100,y:2,clusterName:"park"});
-//placeTile({x:99,y:2,clusterName:"house"});
-
-function placeTile(tile){ 
-    var meta = gunTiles.get(tile.x+','+tile.y);
-    return; // do nothing! Changed to GUN.   
-    if(!tiles[tile.x])tiles[tile.x]=[];
-    tiles[tile.x][tile.y]=tile.clusterName; 
-};
 
 function getTile(x,y){
     //if(!tiles[x])return null;
     //return tiles[x][y];
     var meta = gunTiles.get(x+','+y);
-    return meta.clusterName;
+    return meta;
 }
 
 
@@ -169,6 +150,7 @@ window.addEventListener('hashchange', getCoordsFromHash, false);
 loadTilesRadius(lookingAtTile.x, lookingAtTile.y, 1);
 
 var loaded = {};
+var thats = new Map;
 
 class Tile {
      constructor(x,z,cluster){   
@@ -191,6 +173,7 @@ class Tile {
         //if(this.gtlfScene){ scene.remove(this.gtlfScene)}
         this.cluster = cluster;
         var that = this;
+        thats.set(that.lot.x+',')
 
         if(cluster){
             
@@ -237,11 +220,12 @@ class Tile {
     render(){
        
 
-        this.ourGlobalPos = this.ourGlobalPos || this.getGlobalPosition();
-        var gPos = this.ourGlobalPos;
-        var data = getTile(gPos.x, gPos.y);
+        this.lot = this.lot || this.getGlobalPosition();
+        var lot = this.lot;
+        var meta = getTile(lot.x, lot.y);
+        meta.tile = this;
 
-        this.loadCluster(data);
+        this.loadCluster(meta.type);
 
     }
 }
