@@ -180,11 +180,12 @@ class Tile {
         //console.log("load", cluster, this);
         var url = `js/clusters/${cluster}.glb`, tmp;
 
-        if(tmp = loaded[url]){
+        /*if(tmp = loaded[url]){
             load(tmp)
         } else {
             loader.load(url,load);
-        }
+        }*/
+        load(tmp);
 
         function load(gltf){
             loaded[url] = gltf;
