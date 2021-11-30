@@ -386,7 +386,7 @@ function onMouseMove(event) {
             mouseOnGround = {x:posX, z:posZ};
         }
     }
-    lookingAtTile(globalPosition.x,globalPosition.y);
+    lookedAtNewTile(globalPosition.x,globalPosition.y);
 
   
 }
