@@ -1,3 +1,20 @@
+import RAPIER from 'https://cdn.skypack.dev/@dimforge/rapier3d-compat';
+
+import * as THREE from 'https://cdn.skypack.dev/three@v0.135.0';
+import { MapControls } from 'https://cdn.skypack.dev/three@v0.135.0/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from 'https://cdn.skypack.dev/three@v0.135.0/examples/jsm/loaders/GLTFLoader.js';
+
+
+RAPIER.init().then(() => {
+    // Run the simulation.
+});
+
+// OR using the await syntax:
+async function run_simulation() {
+    await RAPIER.init();
+    // Run the simulation.
+}
+
 THREE.Cache.enabled = true;
 
 const NORTH = 1,
@@ -17,9 +34,10 @@ var camera,
     raycaster = new THREE.Raycaster(),
     carList = [],
     manager = new THREE.LoadingManager(),
-    loader = new THREE.GLTFLoader(manager),
+    loader = new GLTFLoader(manager),
     gun = GUN('https://stonegun.herokuapp.com/gun');
 
+var loadedURLS = [];
 
 var clusterNames = [
     'factory',
@@ -62,7 +80,7 @@ let listeningFor = [];
 var gunTiles = gun.get('tiles')
 
 function lookedAtNewTile(pos) {
-    if (this.pTile && Math.round(this.pTile.x) == Math.round(pos.x) && Math.round(this.pTile.y) == Math.round(pos.y)) {
+    if (window.pTile && Math.round(window.pTile.x) == Math.round(pos.x) && Math.round(window.pTile.y) == Math.round(pos.y)) {
         return;
     }
 
@@ -70,7 +88,7 @@ function lookedAtNewTile(pos) {
 
     history.pushState(null, null, '#' + parseInt(globalPosition.x) + "," + parseInt(globalPosition.y));
 
-    this.pTile = pos;
+    window.pTile = pos;
 }
 
 function setTile(x, y, type) {
@@ -166,11 +184,38 @@ class Tile{
         this.currentTextColor = "rgb(255,0,0)"
     }
     getGlobalTilePosition() {
-        let rendoffx = (this.localx - lookingAtTile.x);
-        let rendoffy = (this.localz - lookingAtTile.y);
+        let rendoffx = (this.localx - lookingAtTile.x) ;
+        let rendoffy = (this.localz - lookingAtTile.y) ;
+
+        if(rendoffx == -3)rendoffx = 1;
+        if(rendoffx == -4)rendoffx = 0;
+        
+        if(rendoffy == -3)rendoffy = 1;
+        if(rendoffy == -4)rendoffy = 0;
+
+        if(rendoffx == 4)rendoffx = -1;
+        if(rendoffx == 5)rendoffx = 0;
+        
+        if(rendoffy == 4)rendoffy = -1;
+        if(rendoffy == 5)rendoffy = 0;
+
+   
+
+/*
+        if(rendoffx == -3)rendoffx = 3;
+        if(rendoffx == -4)rendoffx = 4;
+
+        if(rendoffy == 3)rendoffy = -3;
+        if(rendoffy == 4)rendoffy = -4;
+*/
+
+        this.rendoffx = rendoffx;
+        this.rendoffy = rendoffy;
+
         return { x: globalPosition.x + rendoffx, y: globalPosition.y + rendoffy }
     }
     updateText(text,textcolor){
+         return;
         if(text == this.text && textcolor == this.textcolor)return;
         if(this.spi)scene.remove(this.spi);
         let spi = mktxtspr(text,600,textcolor);
@@ -188,10 +233,17 @@ class Tile{
         this.tileType = tileType;
         if (tileType) {
             var url = `js/clusters/${tileType}.glb`;
+
+            if( loadedURLS[url] ){
+                scene.add(tloadedURLS[url])
+                this.gtlfScene = gltf.scene;
+                return;
+            }
+
             loader.load(url, 
             (gltf) => {
                 loaded[url] = gltf;
-                if (this.gtlfScene) scene.remove(this.gtlfScene)
+                if (this.gtlfScene) { scene.remove(this.gtlfScene) }
                 this.gtlfScene = gltf.scene;
                 this.gtlfScene.traverse(function (child) {
 
@@ -204,6 +256,7 @@ class Tile{
                 })
                 this.gtlfScene.position.set((this.localx - 5) * 60, 0, (this.localz - 5) * 60)
                scene.add(this.gtlfScene)
+               loadedURLS[url] = (this.gtlf)
             });
         }
     }
@@ -243,10 +296,10 @@ function initCity() {
         40,
         window.innerWidth / window.innerHeight,
         50,
-        200
+       200
     )
     camera.position.set(0, 100, 0)
-    controls = new THREE.MapControls(camera)
+   
 
     // Lights
     light = new THREE.DirectionalLight(0x9a9a9a, 1)
@@ -266,14 +319,37 @@ function initCity() {
         antialias: true,
     })
     renderer.shadowMap.enabled = true
-    renderer.gammaInput = renderer.gammaOutput = true
+  //  renderer.gammaInput = renderer.gammaOutput = true
+
     renderer.gammaFactor = 2.0
+    renderer.outputEncoding = THREE.GammaEncoding;
     renderer.setSize(window.innerWidth, window.innerHeight)
+    controls = new MapControls( camera, renderer.domElement)
+
+
+
+				//controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+
+    controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+    controls.dampingFactor = 0.05;
+
+    controls.screenSpacePanning = false;
+
+    controls.minDistance = 100;
+    controls.maxDistance = 100;
+
+				controls.minPolarAngle = Math.PI / 5; // radians
+             controls.maxPolarAngle = Math.PI / 5; // radians
+
+           controls.minAzimuthAngle = Math.PI / 4; // radians
+           controls.maxAzimuthAngle = Math.PI / 4; // radians
+
 
     //Events
     window.addEventListener('resize', onResize, false)
     window.addEventListener('dblclick', onMouseDblclick, false)
     window.addEventListener('mousemove', onMouseMove, false)
+    window.addEventListener('mouseenter', onMouseMove, false)
     window.addEventListener('touchmove', onMouseMove, false)
     //window.addEventListener('touchstart', onMouseDown, false)
     //window.addEventListener('touchend', onMouseUp, false)
@@ -281,8 +357,8 @@ function initCity() {
     //8x8 road grid
     loader.load(`js/clusters/road.glb`, (gltf) => {
         gltf.scene.position.set(60, 0, 0)
-        this.road = gltf.scene;
-        scene.add(this.road);
+        window.road = gltf.scene;
+        scene.add(window.road);
     })
 
     for (let z = 0; z < 8; z++) {
@@ -305,24 +381,26 @@ function onMouseMove(event) {
     event.preventDefault()
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
-    this.lookedAtNewTile(lookingAtTile);
-
 
     raycaster.setFromCamera(mouse, camera);
-    if (this.road) {
-        var intersects = raycaster.intersectObject(this.road,true);
+
+    if (window.road) {
+        var intersects = raycaster.intersectObject(window.road,true);
         if (intersects.length > 0) {
             const posX = intersects[0].point.x;
             const posZ = intersects[0].point.z;
             mouseOnGround = {x:posX, z:posZ};
         }
     }
+    lookedAtNewTile(lookingAtTile);
+
+  
 }
 
 
 
 function onMouseDblclick(event) {
-    let curtil = this._localTiles[pointingAtTile.x+","+pointingAtTile.y];
+    let curtil = _localTiles[pointingAtTile.x+","+pointingAtTile.y];
     let tileToSet = curtil.getGlobalTilePosition();
     setTile(tileToSet.x,tileToSet.y,clusterNames[Math.floor(Math.random()*16)]);
 }
@@ -342,6 +420,7 @@ function render() {
     stats.begin()
     controls.update()
 
+   
     let rx = 1 - ((130 - (camera.position.x - 60)) / 420)
     let rz = 1 - ((130 - (camera.position.z - 60)) / 420)
 
@@ -349,6 +428,10 @@ function render() {
 
     rx = 1 - ((130 - (mouseOnGround.x - 60)) / 420)
     rz = 1 - ((130 - (mouseOnGround.z - 60)) / 420)
+
+
+   
+  
 
     pointingAtTile = { x: Math.ceil(rx * 8), y: Math.ceil(rz * 8) };
 
