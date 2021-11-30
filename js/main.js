@@ -119,8 +119,8 @@ function loadTilesRadius(x, y, radius) {
 
 //ask and recieve updates from network
 function tileView(x, y) {
-    if(listeningFor.includes(x+","+y))return;
-    listeningFor.push(x+","+y);
+   // if(listeningFor.includes(x+","+y))return;
+   // listeningFor.push(x+","+y);
     gunTiles.get(x + ',' + y).on(() => {}); // update graph
 }
 
@@ -146,6 +146,8 @@ function goToCoord({ x, y }) {
     if (camera) camera.position.x = 41.56269377774534
     if (controls) controls.target.z = 0
     if (camera) camera.position.z = 41.562693777745345
+    loadTilesRadius(globalPosition.x, globalPosition.y, 2);
+
 }
 
 getCoordsFromHash();
