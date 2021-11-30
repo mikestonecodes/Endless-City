@@ -146,7 +146,11 @@ function goToCoord({ x, y }) {
     if (camera) camera.position.x = 41.56269377774534
     if (controls) controls.target.z = 0
     if (camera) camera.position.z = 41.562693777745345
-    loadTilesRadius(globalPosition.x, globalPosition.y, 2);
+
+    setTimeout({}=>{
+        loadTilesRadius(globalPosition.x, globalPosition.y, 2);
+    },5)
+ 
 
 }
 
@@ -401,9 +405,7 @@ function animate() {
     render()
 }
 
-function goTo(x, y) {
-    this.globalPosition = { x, y }
-}
+
 
 function render() {
  
@@ -418,10 +420,6 @@ function render() {
 
     rx = 1 - ((130 - (mouseOnGround.x - 60)) / 420)
     rz = 1 - ((130 - (mouseOnGround.z - 60)) / 420)
-
-
-   
-  
 
     pointingAtTile = { x: Math.ceil(rx * 8), y: Math.ceil(rz * 8) };
 
