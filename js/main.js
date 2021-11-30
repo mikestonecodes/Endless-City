@@ -147,11 +147,6 @@ function goToCoord({ x, y }) {
     if (controls) controls.target.z = 0
     if (camera) camera.position.z = 41.562693777745345
 
-    setTimeout(()=>{
-        loadTilesRadius(globalPosition.x, globalPosition.y, 2);
-    },500)
- 
-
 }
 
 getCoordsFromHash();
@@ -319,7 +314,7 @@ function initCity() {
     renderer.outputEncoding = THREE.GammaEncoding;
     renderer.setSize(window.innerWidth, window.innerHeight)
     controls = new MapControls( camera, renderer.domElement)
-
+    
 
 
 				//controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
@@ -391,7 +386,7 @@ function onMouseMove(event) {
             mouseOnGround = {x:posX, z:posZ};
         }
     }
- 
+    lookingAtTile(globalPosition.x,globalPosition.y);
 
   
 }
@@ -417,7 +412,7 @@ function render() {
     stats.begin()
     controls.update()
 
-   
+    
     let rx = 1 - ((130 - (camera.position.x - 60)) / 420)
     let rz = 1 - ((130 - (camera.position.z - 60)) / 420)
 
