@@ -187,19 +187,7 @@ class Tile{
         let rendoffx = (this.localx - lookingAtTile.x) ;
         let rendoffy = (this.localz - lookingAtTile.y) ;
 
-        if(rendoffx == -3)rendoffx = 1;
-        if(rendoffx == -4)rendoffx = 0;
-        
-        if(rendoffy == -3)rendoffy = 1;
-        if(rendoffy == -4)rendoffy = 0;
-
-        if(rendoffx == 4)rendoffx = -1;
-        if(rendoffx == 5)rendoffx = 0;
-        
-        if(rendoffy == 4)rendoffy = -1;
-        if(rendoffy == 5)rendoffy = 0;
-
-   
+    
 
 /*
         if(rendoffx == -3)rendoffx = 3;
