@@ -147,9 +147,9 @@ function goToCoord({ x, y }) {
     if (controls) controls.target.z = 0
     if (camera) camera.position.z = 41.562693777745345
 
-    setTimeout({}=>{
+    setTimeout(()=>{
         loadTilesRadius(globalPosition.x, globalPosition.y, 2);
-    },5)
+    },500)
  
 
 }
@@ -362,7 +362,12 @@ function initCity() {
     }
 
     loadCars({ x: 1, z: 0, cluster: 'cars' })
-    loadTilesRadius(globalPosition.x, globalPosition.y, 1);
+
+    setTimeout(()=>{
+        loadTilesRadius(globalPosition.x, globalPosition.y, 2);
+    },500)
+
+    //loadTilesRadius(globalPosition.x, globalPosition.y, 1);
 }
 
 function onResize() {
@@ -386,7 +391,7 @@ function onMouseMove(event) {
             mouseOnGround = {x:posX, z:posZ};
         }
     }
-    lookedAtNewTile(lookingAtTile);
+ 
 
   
 }
@@ -424,7 +429,7 @@ function render() {
     pointingAtTile = { x: Math.ceil(rx * 8), y: Math.ceil(rz * 8) };
 
     globalPosition = { x: startingPos.x + relOffset.x + (lookingAtTile.x - innerTileOffset.x), y: startingPos.y + relOffset.z + (lookingAtTile.y - innerTileOffset.y) }
-
+ 
     let resetOffset = 80;
 
     if (camera.position.x > resetOffset * 2) {
